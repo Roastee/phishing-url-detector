@@ -1,0 +1,26 @@
+{
+  "Host-only LR": {
+    "accuracy": 0.8285,
+    "precision": 0.8956,
+    "recall": 0.6721,
+    "f1": 0.7635,
+    "roc_auc": 0.8452,
+    "pr_auc": 0.8678
+  },
+  "Leaky LR (full URL)": {
+    "accuracy": 0.9935,
+    "precision": 0.9935,
+    "recall": 0.9935,
+    "f1": 0.9935,
+    "roc_auc": 0.9999,
+    "pr_auc": 0.9999
+  },
+  "Host-only XGBoost": {
+    "accuracy": 0.8352,
+    "precision": 0.9012,
+    "recall": 0.6894,
+    "f1": 0.7772,
+    "roc_auc": 0.8512,
+    "pr_auc": 0.8789
+  }
+}

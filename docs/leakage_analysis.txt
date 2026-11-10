@@ -1,0 +1,5 @@
+     Class  Label  Total      % www    % HTTPS    % HTTP  % with path  Median len
+Legitimate      0 134850 100.000000 100.000000  0.000000   100.000000        27.0
+  Phishing      1 100508  41.508139  48.630955 51.369045    61.343376        34.0
+
+CRITICAL LEAKAGE: HTTPS is 100% predictive for Legitimate class

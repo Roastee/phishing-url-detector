@@ -1,0 +1,711 @@
+{
+  "in_distribution_test": {
+    "LogisticRegression": {
+      "accuracy": 0.8424,
+      "precision": 0.9157,
+      "recall": 0.7296,
+      "f1": 0.8121,
+      "roc_auc": 0.8708,
+      "pr_auc": 0.8994,
+      "fpr": 0.0588,
+      "confusion_matrix": [
+        [
+          19215,
+          1200
+        ],
+        [
+          4832,
+          13039
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.8379,
+      "precision": 0.9084,
+      "recall": 0.726,
+      "f1": 0.807,
+      "roc_auc": 0.8645,
+      "pr_auc": 0.8945,
+      "fpr": 0.0641,
+      "confusion_matrix": [
+        [
+          19106,
+          1309
+        ],
+        [
+          4896,
+          12975
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.8438,
+      "precision": 0.9341,
+      "recall": 0.7157,
+      "f1": 0.8105,
+      "roc_auc": 0.8623,
+      "pr_auc": 0.8957,
+      "fpr": 0.0442,
+      "confusion_matrix": [
+        [
+          19513,
+          902
+        ],
+        [
+          5080,
+          12791
+        ]
+      ]
+    }
+  },
+  "model_comparison": {
+    "LogisticRegression": {
+      "accuracy": 0.8424,
+      "precision": 0.9157,
+      "recall": 0.7296,
+      "f1": 0.8121,
+      "roc_auc": 0.8708,
+      "pr_auc": 0.8994,
+      "fpr": 0.0588,
+      "confusion_matrix": [
+        [
+          19215,
+          1200
+        ],
+        [
+          4832,
+          13039
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.8379,
+      "precision": 0.9084,
+      "recall": 0.726,
+      "f1": 0.807,
+      "roc_auc": 0.8645,
+      "pr_auc": 0.8945,
+      "fpr": 0.0641,
+      "confusion_matrix": [
+        [
+          19106,
+          1309
+        ],
+        [
+          4896,
+          12975
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.8438,
+      "precision": 0.9341,
+      "recall": 0.7157,
+      "f1": 0.8105,
+      "roc_auc": 0.8623,
+      "pr_auc": 0.8957,
+      "fpr": 0.0442,
+      "confusion_matrix": [
+        [
+          19513,
+          902
+        ],
+        [
+          5080,
+          12791
+        ]
+      ]
+    }
+  },
+  "independent_test": {
+    "ratio_1_to_1": {
+      "accuracy": 0.8699,
+      "precision": 0.966,
+      "recall": 0.7669,
+      "f1": 0.855,
+      "roc_auc": 0.9089,
+      "pr_auc": 0.9405,
+      "fpr": 0.027,
+      "confusion_matrix": [
+        [
+          288,
+          8
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.9412,
+      "precision_ci_upper": 0.9876,
+      "recall_ci_lower": 0.7203,
+      "recall_ci_upper": 0.8127,
+      "f1_ci_lower": 0.8235,
+      "f1_ci_upper": 0.8855,
+      "roc_auc_ci_lower": 0.8827,
+      "roc_auc_ci_upper": 0.9363,
+      "pr_auc_ci_lower": 0.9226,
+      "pr_auc_ci_upper": 0.9572,
+      "fpr_ci_lower": 0.0099,
+      "fpr_ci_upper": 0.047,
+      "phishing_count": 296,
+      "legitimate_count": 296,
+      "test_set_size": {
+        "phishing": 296,
+        "legitimate": 296,
+        "total": 592
+      }
+    },
+    "ratio_1_to_1_top10k_slice": {
+      "accuracy": 0.8378,
+      "precision": 0.987,
+      "recall": 0.7669,
+      "f1": 0.8631,
+      "roc_auc": 0.9173,
+      "pr_auc": 0.9667,
+      "fpr": 0.0203,
+      "confusion_matrix": [
+        [
+          145,
+          3
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.9718,
+      "precision_ci_upper": 1.0,
+      "recall_ci_lower": 0.7185,
+      "recall_ci_upper": 0.8105,
+      "f1_ci_lower": 0.8314,
+      "f1_ci_upper": 0.8905,
+      "roc_auc_ci_lower": 0.8905,
+      "roc_auc_ci_upper": 0.9415,
+      "pr_auc_ci_lower": 0.9547,
+      "pr_auc_ci_upper": 0.9767,
+      "fpr_ci_lower": 0.0,
+      "fpr_ci_upper": 0.0429
+    },
+    "ratio_1_to_1_longtail_slice": {
+      "accuracy": 0.8333,
+      "precision": 0.9784,
+      "recall": 0.7669,
+      "f1": 0.8598,
+      "roc_auc": 0.9005,
+      "pr_auc": 0.9603,
+      "fpr": 0.0338,
+      "confusion_matrix": [
+        [
+          143,
+          5
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.9576,
+      "precision_ci_upper": 0.9955,
+      "recall_ci_lower": 0.7185,
+      "recall_ci_upper": 0.8105,
+      "f1_ci_lower": 0.8267,
+      "f1_ci_upper": 0.8885,
+      "roc_auc_ci_lower": 0.8695,
+      "roc_auc_ci_upper": 0.9271,
+      "pr_auc_ci_lower": 0.9462,
+      "pr_auc_ci_upper": 0.9716,
+      "fpr_ci_lower": 0.007,
+      "fpr_ci_upper": 0.0676
+    },
+    "ratio_1_to_10": {
+      "accuracy": 0.9453,
+      "precision": 0.6756,
+      "recall": 0.7669,
+      "f1": 0.7184,
+      "roc_auc": 0.9027,
+      "pr_auc": 0.8251,
+      "fpr": 0.0368,
+      "confusion_matrix": [
+        [
+          2851,
+          109
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.6224,
+      "precision_ci_upper": 0.7209,
+      "recall_ci_lower": 0.7184,
+      "recall_ci_upper": 0.8146,
+      "f1_ci_lower": 0.6743,
+      "f1_ci_upper": 0.7589,
+      "roc_auc_ci_lower": 0.8737,
+      "roc_auc_ci_upper": 0.9292,
+      "pr_auc_ci_lower": 0.7834,
+      "pr_auc_ci_upper": 0.8638,
+      "fpr_ci_lower": 0.03,
+      "fpr_ci_upper": 0.0439,
+      "phishing_count": 296,
+      "legitimate_count": 2960,
+      "test_set_size": {
+        "phishing": 296,
+        "legitimate": 2960,
+        "total": 3256
+      }
+    },
+    "ratio_1_to_10_top10k_slice": {
+      "accuracy": 0.9364,
+      "precision": 0.8376,
+      "recall": 0.7669,
+      "f1": 0.8007,
+      "roc_auc": 0.9107,
+      "pr_auc": 0.8693,
+      "fpr": 0.0297,
+      "confusion_matrix": [
+        [
+          1436,
+          44
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.7931,
+      "precision_ci_upper": 0.881,
+      "recall_ci_lower": 0.7168,
+      "recall_ci_upper": 0.8144,
+      "f1_ci_lower": 0.7621,
+      "f1_ci_upper": 0.8353,
+      "roc_auc_ci_lower": 0.8816,
+      "roc_auc_ci_upper": 0.9359,
+      "pr_auc_ci_lower": 0.8339,
+      "pr_auc_ci_upper": 0.8997,
+      "fpr_ci_lower": 0.0214,
+      "fpr_ci_upper": 0.0387
+    },
+    "ratio_1_to_10_longtail_slice": {
+      "accuracy": 0.9245,
+      "precision": 0.7774,
+      "recall": 0.7669,
+      "f1": 0.7721,
+      "roc_auc": 0.8947,
+      "pr_auc": 0.8512,
+      "fpr": 0.0439,
+      "confusion_matrix": [
+        [
+          1415,
+          65
+        ],
+        [
+          69,
+          227
+        ]
+      ],
+      "precision_ci_lower": 0.7284,
+      "precision_ci_upper": 0.8271,
+      "recall_ci_lower": 0.7168,
+      "recall_ci_upper": 0.8144,
+      "f1_ci_lower": 0.7319,
+      "f1_ci_upper": 0.8104,
+      "roc_auc_ci_lower": 0.8632,
+      "roc_auc_ci_upper": 0.9229,
+      "pr_auc_ci_lower": 0.8149,
+      "pr_auc_ci_upper": 0.8854,
+      "fpr_ci_lower": 0.0337,
+      "fpr_ci_upper": 0.0546
+    },
+    "phishing_count_note": "OpenPhish source has 300 URLs; 296 used in evaluation (4 failed feature extraction or were duplicates)"
+  },
+  "hosting_domain_analysis": {
+    "free_hosting_suffixes": [
+      "000webhostapp.com",
+      "atom.codes",
+      "azurewebsites.net",
+      "blogspot.com",
+      "cf-ipfs.com",
+      "cloudflareworkers.com",
+      "duckdns.org",
+      "dweb.link",
+      "firebaseapp.com",
+      "fly.dev",
+      "github.io",
+      "gitlab.io",
+      "gitpod.io",
+      "glitch.me",
+      "herokuapp.com",
+      "id.repl.co",
+      "ipfs.dweb.link",
+      "ipfs.io",
+      "netlify.app",
+      "ngrok.io",
+      "pages.dev",
+      "pantheonsite.io",
+      "railway.app",
+      "render.com",
+      "repl.co",
+      "square.site",
+      "surge.sh",
+      "tilda.cc",
+      "vercel.app",
+      "vhost.link",
+      "web.app",
+      "weebly.com",
+      "weeblysite.com",
+      "wix.com",
+      "wixsite.com",
+      "wordpress.com",
+      "workers.dev"
+    ],
+    "top30_suffixes_training_phishing": {
+      "com": 34823,
+      "web.app": 5718,
+      "firebaseapp.com": 5546,
+      "ru": 2944,
+      "repl.co": 2875,
+      "net": 2451,
+      "top": 2324,
+      "io": 2135,
+      "org": 1513,
+      "xyz": 1444,
+      "workers.dev": 1423,
+      "cf": 1203,
+      "square.site": 1187,
+      "co": 1147,
+      "ga": 1107,
+      "ml": 993,
+      "ipfs.dweb.link": 942,
+      "pantheonsite.io": 891,
+      "info": 875,
+      "id.repl.co": 871,
+      "me": 826,
+      "duckdns.org": 641,
+      "de": 621,
+      "dev": 621,
+      "cn": 616,
+      "": 604,
+      "com.br": 600,
+      "cf-ipfs.com": 494,
+      "gq": 493,
+      "club": 491
+    },
+    "top30_suffixes_openphish": {
+      "pages.dev": 122,
+      "com": 47,
+      "vercel.app": 31,
+      "blogspot.com": 7,
+      "top": 7,
+      "vn": 6,
+      "ly": 6,
+      "com.vn": 6,
+      "github.io": 6,
+      "com.ss": 3,
+      "in": 3,
+      "pro": 3,
+      "org": 3,
+      "workers.dev": 3,
+      "vip": 3,
+      "cfd": 3,
+      "help": 2,
+      "cam": 2,
+      "info": 2,
+      "net": 2,
+      "com.es": 2,
+      "shop": 2,
+      "site": 2,
+      "ar": 2,
+      "ai": 1,
+      "io": 1,
+      "cc": 1,
+      "de": 1,
+      "at": 1,
+      "xyz": 1
+    },
+    "phishing_on_free_hosting_train": {
+      "count": 27983,
+      "total": 100508,
+      "share": 0.2784
+    },
+    "phishing_on_free_hosting_openphish": {
+      "count": 169,
+      "total": 300,
+      "share": 0.5633
+    },
+    "recall_free_hosting": 0.9989,
+    "recall_non_free_hosting": 0.5158,
+    "recall_non_free_hosting_note": "Point estimate from single evaluation: 0.5158. Bootstrap mean: 0.5587 (95% CI: 0.4656-0.6412). The bootstrap CI is more reliable."
+  },
+  "threshold_selection": {
+    "threshold_precision_090": 0.46,
+    "threshold_low_fpr_2pct": 0.58,
+    "default_threshold": 0.58,
+    "precision_at_threshold_a": 0.9009,
+    "recall_at_threshold_a": 0.64,
+    "fpr_at_threshold_a": 0.0472,
+    "fpr_longtail_at_threshold_a": 0.0373,
+    "fpr_at_threshold_b": 0.0279,
+    "fpr_longtail_at_threshold_b": 0.0191,
+    "recall_at_threshold_b": 0.6177,
+    "thresholds_summary": {
+      "threshold_precision_090": {
+        "value": 0.46,
+        "description": "Threshold achieving ~90% precision on validation set",
+        "precision": 0.9009,
+        "recall": 0.64,
+        "fpr": 0.0472,
+        "fpr_longtail": 0.0373
+      },
+      "threshold_low_fpr_2pct": {
+        "value": 0.58,
+        "description": "Threshold achieving ~2% FPR on validation set (DEPLOYED)",
+        "precision": 0.9341,
+        "recall": 0.6177,
+        "fpr": 0.0279,
+        "fpr_longtail": 0.0191
+      },
+      "deployed_threshold": 0.58
+    }
+  },
+  "deployment_info": {
+    "deployed_model": "XGBoost",
+    "feature_count": 17,
+    "feature_names": [
+      "host_length",
+      "dot_count",
+      "hyphen_count",
+      "underscore_count",
+      "digit_count",
+      "digit_ratio",
+      "subdomain_count",
+      "is_suspicious_tld",
+      "uses_punycode",
+      "has_ip_address",
+      "longest_digit_run",
+      "longest_consonant_run",
+      "brand_in_subdomain",
+      "suspicious_keyword_count",
+      "uses_url_shortener",
+      "host_entropy",
+      "on_known_hosting_platform"
+    ],
+    "host_only": true,
+    "path_query_ignored": true,
+    "https_www_ignored": true,
+    "default_threshold": 0.58,
+    "threshold_precision_090": 0.46,
+    "threshold_low_fpr_2pct": 0.58
+  },
+  "retrain_with_extra_legit": {
+    "before": {
+      "accuracy": 0.8469,
+      "precision": 0.9273,
+      "recall": 0.7291,
+      "f1": 0.8163,
+      "roc_auc": 0.8723,
+      "pr_auc": 0.9018,
+      "fpr": 0.05,
+      "confusion_matrix": [
+        [
+          19394,
+          1021
+        ],
+        [
+          4842,
+          13029
+        ]
+      ]
+    },
+    "after": {
+      "accuracy": 0.8438,
+      "precision": 0.9341,
+      "recall": 0.7157,
+      "f1": 0.8105,
+      "roc_auc": 0.8623,
+      "pr_auc": 0.8957,
+      "fpr": 0.0442,
+      "confusion_matrix": [
+        [
+          19513,
+          902
+        ],
+        [
+          5080,
+          12791
+        ]
+      ]
+    },
+    "extra_legit_source": "Tranco ranks 10,001-100,000"
+  },
+  "free_hosting_fpr_before": 0.5416666666666666,
+  "free_hosting_fpr_after": 0.375,
+  "retrain_with_hosting_platform": {
+    "before": {
+      "fpr": 0.5416666666666666,
+      "confusion_matrix": [
+        [
+          24,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "after": {
+      "fpr": 0.375,
+      "confusion_matrix": [
+        [
+          15,
+          9
+        ],
+        [
+          0,
+          15
+        ]
+      ]
+    },
+    "free_hosting_negatives_added": 24,
+    "sources": {
+      "https://microsoft.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "Microsoft GH Pages org page"
+      },
+      "https://google.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "Google GH Pages org page"
+      },
+      "https://tensorflow.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "TensorFlow docs"
+      },
+      "https://facebook.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "Meta GH Pages org"
+      },
+      "https://apache.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "Apache Foundation page"
+      },
+      "https://aws.github.io": {
+        "source": "well-known",
+        "platform": "github.io",
+        "note": "AWS open-source org"
+      },
+      "https://react-select.netlify.app": {
+        "source": "well-known",
+        "platform": "netlify.app",
+        "note": "React Select docs"
+      },
+      "https://chakra-ui.netlify.app": {
+        "source": "well-known",
+        "platform": "netlify.app",
+        "note": "Chakra UI docs"
+      },
+      "https://formik.netlify.app": {
+        "source": "well-known",
+        "platform": "netlify.app",
+        "note": "Formik docs"
+      },
+      "https://wordpress.com": {
+        "source": "well-known",
+        "platform": "wordpress.com",
+        "note": "WP platform"
+      },
+      "https://en.blog.wordpress.com": {
+        "source": "well-known",
+        "platform": "wordpress.com",
+        "note": "WP blog"
+      },
+      "https://officialgoogleblog.blogspot.com": {
+        "source": "well-known",
+        "platform": "blogspot.com",
+        "note": "Google Official Blog"
+      },
+      "https://googleblog.blogspot.com": {
+        "source": "well-known",
+        "platform": "blogspot.com",
+        "note": "Google Blog"
+      },
+      "https://render.com": {
+        "source": "well-known",
+        "platform": "render.com",
+        "note": "Render homepage"
+      },
+      "https://railway.app": {
+        "source": "well-known",
+        "platform": "railway.app",
+        "note": "Railway homepage"
+      },
+      "https://glitch.me": {
+        "source": "well-known",
+        "platform": "glitch.me",
+        "note": "Glitch homepage"
+      },
+      "https://000webhostapp.com": {
+        "source": "well-known",
+        "platform": "000webhostapp.com",
+        "note": "000Webhost platform"
+      },
+      "https://wix.com": {
+        "source": "well-known",
+        "platform": "wix.com",
+        "note": "Wix homepage"
+      },
+      "https://weebly.com": {
+        "source": "well-known",
+        "platform": "weebly.com",
+        "note": "Weebly homepage"
+      },
+      "https://ipfs.io": {
+        "source": "well-known",
+        "platform": "ipfs.io",
+        "note": "IPFS gateway"
+      },
+      "https://tilda.cc": {
+        "source": "well-known",
+        "platform": "tilda.cc",
+        "note": "Tilda homepage"
+      },
+      "https://cloudflareworkers.com": {
+        "source": "well-known",
+        "platform": "cloudflareworkers.com",
+        "note": "Cloudflare Workers"
+      },
+      "https://gitpod.io": {
+        "source": "well-known",
+        "platform": "gitpod.io",
+        "note": "Gitpod homepage"
+      },
+      "https://dweb.link": {
+        "source": "well-known",
+        "platform": "dweb.link",
+        "note": "IPFS dweb"
+      }
+    },
+    "data_leakage_warning": "The 'before' FPR was measured on 24 legitimate free-hosting URLs that were ALSO used as training negatives. The 'after' FPR of 37.5% is measured on the same 24 URLs (now with 15 phishing added). This is data leakage - true FPR on free-hosted legitimate sites is likely HIGHER than 37.5%. On a hand-built list of 24 legitimate free-hosted URLs (also training negatives), 9 were still flagged as phishing."
+  },
+  "recall_free_hosting_bootstrap_95ci": {
+    "mean": 1.0,
+    "ci_lower": 1.0,
+    "ci_upper": 1.0
+  },
+  "recall_non_free_hosting_bootstrap_95ci": {
+    "mean": 0.5587,
+    "ci_lower": 0.4656,
+    "ci_upper": 0.6412
+  },
+  "precision_at_realistic_prevalence": {
+    "prevalence_1_percent": 0.2229,
+    "prevalence_0_1_percent": 0.0276,
+    "note": "Precision computed from recall and FPR at given prevalence: p*recall / (p*recall + (1-p)*FPR)"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "train_size": 187763,
+  "test_size": 47595,
+  "train_domain_count": 175280,
+  "test_domain_count": 43816,
+  "train_label_distribution": {
+    "0": 107849,
+    "1": 79914
+  },
+  "test_label_distribution": {
+    "0": 27001,
+    "1": 20594
+  },
+  "train_sample_urls": [
+    "https://www.southbankmosaics.com",
+    "https://www.sfnmjournal.com",
+    "https://www.globalreporting.org"
+  ],
+  "test_sample_urls": [
+    "https://www.uni-mainz.de",
+    "https://www.voicefmradio.co.uk",
+    "https://www.rewildingargentina.org"
+  ]
+}

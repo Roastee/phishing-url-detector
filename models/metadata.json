@@ -1,0 +1,86 @@
+{
+  "deployed_model": "XGBoost",
+  "feature_count": 17,
+  "feature_names": [
+    "host_length",
+    "dot_count",
+    "hyphen_count",
+    "underscore_count",
+    "digit_count",
+    "digit_ratio",
+    "subdomain_count",
+    "is_suspicious_tld",
+    "uses_punycode",
+    "has_ip_address",
+    "longest_digit_run",
+    "longest_consonant_run",
+    "brand_in_subdomain",
+    "suspicious_keyword_count",
+    "uses_url_shortener",
+    "host_entropy",
+    "on_known_hosting_platform"
+  ],
+  "threshold": 0.58,
+  "threshold_precision_090": 0.46,
+  "threshold_low_fpr_2pct": 0.58,
+  "training_date": "2026-11-07",
+  "model_comparison": {
+    "LogisticRegression": {
+      "accuracy": 0.8424,
+      "precision": 0.9157,
+      "recall": 0.7296,
+      "f1": 0.8121,
+      "roc_auc": 0.8708,
+      "pr_auc": 0.8994,
+      "fpr": 0.0588,
+      "confusion_matrix": [
+        [
+          19215,
+          1200
+        ],
+        [
+          4832,
+          13039
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.8379,
+      "precision": 0.9084,
+      "recall": 0.726,
+      "f1": 0.807,
+      "roc_auc": 0.8645,
+      "pr_auc": 0.8945,
+      "fpr": 0.0641,
+      "confusion_matrix": [
+        [
+          19106,
+          1309
+        ],
+        [
+          4896,
+          12975
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.8438,
+      "precision": 0.9341,
+      "recall": 0.7157,
+      "f1": 0.8105,
+      "roc_auc": 0.8623,
+      "pr_auc": 0.8957,
+      "fpr": 0.0442,
+      "confusion_matrix": [
+        [
+          19513,
+          902
+        ],
+        [
+          5080,
+          12791
+        ]
+      ]
+    }
+  }
+}
