@@ -1,13 +1,14 @@
 """FastAPI REST API for phishing URL detection."""
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator, ValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import os
 
-from phishdetect.predict import predict_url, batch_predict
+from phishdetect.predict import predict_url, batch_predict, _load_model
 
 app = FastAPI(
     title="Phishing URL Detector API",
@@ -57,6 +58,39 @@ async def health_check():
     except Exception:
         pass
     return {"status": "ok", "model_version": model_version}
+
+
+@app.get("/")
+async def root():
+    """Serve the self-contained HTML page."""
+    html_path = os.path.join(os.path.dirname(__file__), "html_page.html")
+    with open(html_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content)
+
+
+@app.get("/model-info")
+async def model_info():
+    """Get model metadata and independent test metrics."""
+    model, metadata = _load_model()
+    
+    # Try to load independent test metrics
+    independent_test = None
+    independent_metrics_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "reports", "independent_metrics.json")
+    if os.path.exists(independent_metrics_path):
+        try:
+            import json
+            with open(independent_metrics_path) as f:
+                independent_test = json.load(f)
+        except Exception:
+            pass
+    
+    return {
+        "model_type": metadata.get("deployed_model", "XGBoost"),
+        "threshold": metadata.get("threshold", 0.5),
+        "feature_count": metadata.get("feature_count", 17),
+        "independent_test": independent_test
+    }
 
 
 @app.post("/predict")

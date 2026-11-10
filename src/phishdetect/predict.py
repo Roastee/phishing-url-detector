@@ -9,9 +9,9 @@ import os
 from typing import Dict, List
 
 import joblib
-import pandas as pd
+import numpy as np
 
-from .features import FEATURE_NAMES, extract_features, feature_context
+from .features import FEATURE_NAMES, extract_features, feature_context, compute_red_flags, compute_platform_warning
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "model.joblib")
@@ -44,18 +44,26 @@ def predict_url(url: str) -> Dict:
     """Predict whether a URL is phishing or legitimate.
 
     Returns:
-        Dict with keys: url, label, probability, risk_level, reasons
+        Dict with keys: url, label, probability, risk_level, reasons,
+        platform_warning, red_flags, threshold, model_info, method
     """
     model, metadata = _load_model()
     features = extract_features(url)
-    # Create DataFrame with proper feature names to avoid sklearn warnings
-    feature_df = pd.DataFrame([[features[name] for name in FEATURE_NAMES]], columns=FEATURE_NAMES)
+    ctx = feature_context(url)
+    # Create numpy array with proper feature order
+    feature_array = np.array([[features[name] for name in FEATURE_NAMES]], dtype=np.float64)
 
     # Apply scaling if scaler is available
     if _scaler is not None:
-        feature_array = _scaler.transform(feature_df)
-    else:
-        feature_array = feature_df
+        # Avoid sklearn warning about feature names by temporarily setting them
+        original_feature_names = getattr(_scaler, "feature_names_in_", None)
+        _scaler.feature_names_in_ = np.array(FEATURE_NAMES, dtype=object)
+        feature_array = _scaler.transform(feature_array)
+        # Restore original feature names
+        if original_feature_names is not None:
+            _scaler.feature_names_in_ = original_feature_names
+        else:
+            delattr(_scaler, "feature_names_in_")
 
     if hasattr(model, "predict_proba"):
         prob_phishing = float(model.predict_proba(feature_array)[0, 1])
@@ -65,7 +73,8 @@ def predict_url(url: str) -> Dict:
     # Cap probability at 99.9% to never show 100%
     prob_phishing = min(prob_phishing, 0.999)
 
-    label = "phishing" if prob_phishing >= _metadata.get("threshold", 0.5) else "legitimate"
+    threshold = _metadata.get("threshold", 0.5)
+    label = "phishing" if prob_phishing >= threshold else "legitimate"
     if prob_phishing < 0.3:
         risk_level = "low"
     elif prob_phishing < 0.7:
@@ -73,8 +82,24 @@ def predict_url(url: str) -> Dict:
     else:
         risk_level = "high"
 
-    # Build reasons from top contributing features
-    reasons = _generate_reasons(features, url)
+    # Build reasons from top contributing features (with direction)
+    reasons = _generate_reasons(features, url, threshold)
+
+    # Compute red flags
+    red_flags = compute_red_flags(url, ctx)
+
+    # Compute platform warning
+    platform_warning = compute_platform_warning(url, ctx)
+
+    # If platform warning, adjust risk level to "uncertain" for display
+    if platform_warning:
+        risk_level = "uncertain"
+
+    model_info = {
+        "model_type": metadata.get("deployed_model", "XGBoost"),
+        "threshold": threshold,
+        "feature_count": metadata.get("feature_count", 17),
+    }
 
     return {
         "url": url,
@@ -82,6 +107,11 @@ def predict_url(url: str) -> Dict:
         "probability": prob_phishing,
         "risk_level": risk_level,
         "reasons": reasons[:5],
+        "platform_warning": platform_warning,
+        "red_flags": red_flags,
+        "threshold": threshold,
+        "model_info": model_info,
+        "method": "heuristic",  # or "shap" if SHAP is used
     }
 
 
@@ -90,12 +120,17 @@ def batch_predict(urls: List[str]) -> List[Dict]:
     return [predict_url(url) for url in urls]
 
 
-def _generate_reasons(features: Dict, url: str) -> List[Dict]:
+def _generate_reasons(features: Dict, url: str, threshold: float = 0.5) -> List[Dict]:
     """Generate human-readable reasons for the prediction.
 
     Only uses features in FEATURE_NAMES. The impact is a simple
     heuristic based on feature values; for SHAP-based contributions
     use explain.explain_url.
+
+    Args:
+        features: Dict of feature values
+        url: The URL being analyzed
+        threshold: Decision threshold (used to determine direction)
     """
     ctx = feature_context(url)
     reasons = []
@@ -110,10 +145,33 @@ def _generate_reasons(features: Dict, url: str) -> List[Dict]:
         # Simple impact: use the value itself as a rough impact
         # (This is not SHAP; for real contributions see explain.py)
         impact = val
+        # Determine direction: raises or lowers risk
+        # Features that are typically phishing indicators raise risk
+        phishing_indicators = {
+            "is_suspicious_tld", "uses_punycode", "has_ip_address",
+            "brand_in_subdomain", "suspicious_keyword_count", "uses_url_shortener",
+            "host_entropy", "on_known_hosting_platform"
+        }
+        # Features that are typically legitimate indicators lower risk
+        legitimate_indicators = set()  # None in our current feature set
+        if fname in phishing_indicators:
+            direction = "raises"
+        elif fname in legitimate_indicators:
+            direction = "lowers"
+        else:
+            # For continuous features, use correlation with phishing
+            # Higher values of these typically indicate phishing
+            if fname in ["host_length", "dot_count", "hyphen_count", "underscore_count",
+                         "digit_count", "digit_ratio", "subdomain_count",
+                         "longest_digit_run", "longest_consonant_run"]:
+                direction = "raises"
+            else:
+                direction = "neutral"
         reasons.append({
             "feature": fname,
             "value": val,
             "impact": float(impact),
+            "direction": direction,
             "explanation": explanation,
         })
 

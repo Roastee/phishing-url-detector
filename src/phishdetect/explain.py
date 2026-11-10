@@ -3,7 +3,6 @@
 import os
 import numpy as np
 import pandas as pd
-import shap
 
 from .features import FEATURE_NAMES, extract_features, feature_context
 from .predict import _load_model, _scaler
@@ -19,6 +18,10 @@ def _get_explainer():
     global _explainer
     if _explainer is None:
         model, _ = _load_model()
+        try:
+            import shap
+        except ImportError:
+            raise ImportError("shap is required for explainability features. Install it with: pip install shap")
         if hasattr(model, 'coef_'):
             _explainer = shap.LinearExplainer(model, np.zeros((1, len(FEATURE_NAMES))))
         else:

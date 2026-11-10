@@ -4,7 +4,15 @@ import math
 import re
 import urllib.parse
 from typing import Dict, List
+import tempfile
 import tldextract
+
+# Initialize tldextract with offline settings
+TLDEXTRACT = tldextract.TLDExtract(
+    suffix_list_urls=(),
+    cache_dir=tempfile.gettempdir(),
+    include_psl_private_domains=True
+)
 
 FEATURE_NAMES: List[str] = [
     "host_length", "dot_count", "hyphen_count", "underscore_count",
@@ -56,13 +64,13 @@ def extract_features(url: str) -> Dict[str, float]:
         host = netloc.split(":")[0]
         if host.startswith("www."):
             host = host[4:]
-        extr = tldextract.extract(host)
+        extr = TLDEXTRACT(host)
         domain = extr.domain.lower()
         tld = extr.suffix.lower()
         subdomain = extr.subdomain.lower()
         registered_domain = f"{domain}.{tld}" if domain and tld else ""
         # Extract suffix for hosting platform detection (PSL private suffixes)
-        extr_with_psl = tldextract.extract(host, include_psl_private_domains=True)
+        extr_with_psl = TLDEXTRACT(host)
         hosting_suffix = extr_with_psl.suffix.lower() if extr_with_psl.suffix else ""
         on_known_hosting = 1.0 if hosting_suffix in KNOWN_HOSTING_SUFFIXES else 0.0
         
@@ -117,7 +125,7 @@ def feature_context(url: str) -> dict:
         host = netloc.split(":")[0]
         if host.startswith("www."):
             host = host[4:]
-        extr = tldextract.extract(host)
+        extr = TLDEXTRACT(host)
         domain = extr.domain.lower()
         tld = extr.suffix.lower()
         subdomain = extr.subdomain.lower()
@@ -142,3 +150,88 @@ def feature_context(url: str) -> dict:
         }
     except Exception:
         return empty
+
+
+def compute_red_flags(url: str, ctx: dict = None) -> list:
+    """Compute rule-based red flags for a URL.
+
+    Returns a list of red flag objects with type and matched text.
+    """
+    if ctx is None:
+        ctx = feature_context(url)
+
+    red_flags = []
+
+    # Suspicious TLD
+    if ctx.get("tld") in SUSPICIOUS_TLDS:
+        red_flags.append({
+            "type": "suspicious_tld",
+            "matched": ctx.get("tld", ""),
+            "description": f"Suspicious TLD: .{ctx.get('tld', '')}"
+        })
+
+    # Brand lookalike in subdomain (including hyphenated)
+    for brand in ctx.get("brands", []):
+        red_flags.append({
+            "type": "brand_lookalike",
+            "matched": brand,
+            "description": f"Brand '{brand}' found in subdomain"
+        })
+
+    # Suspicious keywords
+    for kw in ctx.get("suspicious_keywords", []):
+        red_flags.append({
+            "type": "suspicious_keyword",
+            "matched": kw,
+            "description": f"Suspicious keyword: '{kw}'"
+        })
+
+    # IP host
+    if ctx.get("is_ip"):
+        red_flags.append({
+            "type": "ip_host",
+            "matched": ctx.get("host", ""),
+            "description": "Hostname is an IP address"
+        })
+
+    # Punycode
+    if "xn--" in ctx.get("host", ""):
+        red_flags.append({
+            "type": "punycode",
+            "matched": ctx.get("host", ""),
+            "description": "Uses punycode encoding"
+        })
+
+    # URL shortener
+    if ctx.get("shortener"):
+        red_flags.append({
+            "type": "url_shortener",
+            "matched": ctx.get("shortener", ""),
+            "description": f"Uses URL shortener: {ctx.get('shortener', '')}"
+        })
+
+    return red_flags
+
+
+def compute_platform_warning(url: str, ctx: dict = None) -> bool:
+    """Check if the URL is on a known free hosting platform."""
+    if ctx is None:
+        ctx = feature_context(url)
+    # We need to check the hosting platform via tldextract with PSL
+    # The feature extraction already computes on_known_hosting_platform
+    # We'll do a quick check here
+    try:
+        u = url.strip()
+        if not re.match(r"^\w+://", u):
+            parsed = urllib.parse.urlparse("http://" + u)
+        else:
+            parsed = urllib.parse.urlparse(u)
+        netloc = parsed.netloc.lower()
+        host = netloc.split(":")[0]
+        if host.startswith("www."):
+            host = host[4:]
+        extr = TLDEXTRACT(host)
+        hosting_suffix = extr.suffix.lower() if extr.suffix else ""
+        return hosting_suffix in KNOWN_HOSTING_SUFFIXES
+    except Exception:
+        return False

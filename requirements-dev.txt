@@ -1,0 +1,11 @@
+# Development dependencies
+pytest==8.2.0
+ruff==0.4.7
+matplotlib==3.10.9
+seaborn==0.13.2
+shap==0.45.1
+uvicorn==0.29.0
+streamlit==1.36.0
+pyarrow>=14,<18
+pyparsing<3.3
+-e .

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing URL Detector</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #fafafa;
+                --fg: #1a1a1a;
+                --card: #ffffff;
+                --border: #e0e0e0;
+                --primary: #2563eb;
+                --primary-hover: #1d4ed8;
+                --danger: #dc2626;
+                --warning: #f59e0b;
+                --success: #16a34a;
+                --muted: #6b7280;
+                --input-bg: #ffffff;
+                --input-border: #d1d5db;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --fg: #f9fafb;
+                --card: #1f2937;
+                --border: #374151;
+                --primary: #3b82f6;
+                --primary-hover: #2563eb;
+                --danger: #ef4444;
+                --warning: #fbbf24;
+                --success: #22c55e;
+                --muted: #9ca3af;
+                --input-bg: #1f2937;
+                --input-border: #4b5563;
+            }
+        }
+        body { background-color: var(--bg); color: var(--fg); }
+        .container { max-width: 720px; margin: 0 auto; }
+        h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .privacy-note {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            padding: 0.75rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+        }
+
+        .input-group { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .url-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--input-border);
+            border-radius: 0.5rem;
+            background: var(--input-bg);
+            color: var(--fg);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .url-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .result { display: none; margin-top: 1.5rem; padding: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; }
+        .result.visible { display: block; }
+        .verdict { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .verdict-label { font-size: 1.25rem; font-weight: 700; text-transform: capitalize; }
+        .verdict-phishing { color: var(--danger); }
+        .verdict-legitimate { color: var(--success); }
+        .verdict-uncertain { color: var(--warning); }
+        .probability { font-size: 1rem; color: var(--muted); }
+        .disclaimer { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+        .platform-warning {
+            display: none;
+            padding: 0.75rem;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--warning);
+            border-radius: 0.5rem;
+            color: var(--warning);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .platform-warning.visible { display: block; }
+        .section { margin-top: 1.5rem; }
+        .section-title { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.75rem; }
+        .reason-list { list-style: none; }
+        .reason-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .reason-item:last-child { border-bottom: none; }
+        .reason-direction { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+        .direction-raises { background: rgba(220, 38, 38, 0.15); color: var(--danger); }
+        .direction-lowers { background: rgba(22, 163, 74, 0.15); color: var(--success); }
+        .direction-neutral { background: var(--border); color: var(--muted); }
+        .reason-text { flex: 1; font-size: 0.875rem; }
+
+        .red-flags { list-style: none; }
+        .red-flag-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); border-radius: 0.375rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .red-flag-type { font-weight: 600; text-transform: capitalize; color: var(--danger); }
+        .model-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; font-size: 0.875rem; }
+        .model-info-item { padding: 0.75rem; background: var(--card); border: 1px solid var(--border); border-radius: 0.5rem; }
+        .model-info-label { font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+        .model-info-value { margin-top: 0.25rem; }
+        .footer { margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--muted); }
+        .footer a { color: var(--primary); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .error { color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem; }
+        .loading { display: none; text-align: center; padding: 2rem; color: var(--muted); }
+        .loading.visible { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Phishing URL Detector</h1>
+        <div class="privacy-note" id="privacyNote">
+            This model scores the domain only; paths, query strings and https/www are ignored. URLs are analyzed as text and never visited.
+        </div>
+        <div class="input-group">
+            <input type="url" class="url-input" id="urlInput" placeholder="Enter a URL to check..." maxlength="2048">
+            <button class="btn btn-primary" id="checkBtn">Check</button>
+        </div>
+        <div class="input-group">
+            <button class="btn btn-secondary" id="examplePhishing">Example: Phishing</button>
+            <button class="btn btn-secondary" id="exampleLegitimate">Example: Legitimate</button>
+        </div>
+        <div class="loading" id="loading">Analyzing...</div>
+        <div class="error" id="error"></div>
+        <div class="result" id="result">
+            <div class="platform-warning" id="platformWarning">
+                ⚠ This URL is hosted on a free platform (e.g., GitHub Pages, Netlify). The model may be less reliable for such domains. Risk shown as "uncertain".
+            </div>
+            <div class="verdict">
+                <span class="verdict-label" id="verdictLabel">—</span>
+                <span class="probability" id="probability"></span>
+            </div>
+            <div class="disclaimer">Estimated risk, not a guarantee.</div>
+            <div class="section">
+                <div class="section-title">Top Reasons</div>
+                <ul class="reason-list" id="reasonList"></ul>
+            </div>
+            <div class="section">
+                <div class="section-title">Red Flags</div>
+                <ul class="red-flags" id="redFlagsList"></ul>
+            </div>
+            <div class="section">
+                <div class="section-title">Model Info</div>
+                <div class="model-info" id="modelInfo"></div>
+            </div>
+        </div>
+        <div class="footer">
+            <a href="https://github.com/Roastee/phishing-url-detector" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "";
+        const EXAMPLE_PHISHING = "http://paypal-secure-login-verify.xyz";
+        const EXAMPLE_LEGITIMATE = "https://www.wikipedia.org";
+        const urlInput = document.getElementById("urlInput");
+        const checkBtn = document.getElementById("checkBtn");
+        const examplePhishing = document.getElementById("examplePhishing");
+        const exampleLegitimate = document.getElementById("exampleLegitimate");
+        const loading = document.getElementById("loading");
+        const errorEl = document.getElementById("error");
+        const result = document.getElementById("result");
+        const platformWarning = document.getElementById("platformWarning");
+        const verdictLabel = document.getElementById("verdictLabel");
+        const probability = document.getElementById("probability");
+        const reasonList = document.getElementById("reasonList");
+        const redFlagsList = document.getElementById("redFlagsList");
+        const modelInfo = document.getElementById("modelInfo");
+
+        async function fetchModelInfo() {
+            try {
+                const response = await fetch(API_BASE + "/model-info");
+                if (response.ok) {
+                    const data = await response.json();
+                    renderModelInfo(data);
+                }
+            } catch (e) {
+                console.warn("Could not fetch model info:", e);
+            }
+        }
+
+        function renderModelInfo(data) {
+            modelInfo.innerHTML = "";
+            const items = [
+                { label: "Model", value: data.model_type || "XGBoost" },
+                { label: "Threshold", value: data.threshold ? (data.threshold * 100).toFixed(0) + "%" : "N/A" },
+                { label: "Features", value: data.feature_count || "17" },
+                { label: "Independent Test", value: data.independent_test || "N/A" }
+            ];
+            items.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "model-info-item";
+                div.innerHTML = "<div class="model-info-label">" + escapeHtml(item.label) + "</div><div class="model-info-value">" + escapeHtml(item.value) + "</div>";
+                modelInfo.appendChild(div);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function checkUrl(url) {
+            if (!url || !url.trim()) {
+                showError("Please enter a URL");
+                return;
+            }
+            hideError();
+            result.classList.remove("visible");
+            loading.classList.add("visible");
+            checkBtn.disabled = true;
+
+            try {
+                const response = await fetch(API_BASE + "/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: url.trim() })
+                });
+
+                if (response.status === 429) {
+                    throw new Error("Rate limit exceeded. Please wait a moment and try again.");
+                }
+                if (response.status === 422) {
+                    const data = await response.json();
+                    throw new Error(data.detail || "Invalid URL");
+                }
+                if (!response.ok) {
+                    throw new Error("Server error. Please try again.");
+                }
+
+                const data = await response.json();
+                renderResult(data);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                loading.classList.remove("visible");
+                checkBtn.disabled = false;
+            }
+        }
+
+        function renderResult(data) {
+            verdictLabel.textContent = data.label || "—";
+            verdictLabel.className = "verdict-label";
+            if (data.risk_level === "uncertain") {
+                verdictLabel.classList.add("verdict-uncertain");
+            } else if (data.label === "phishing") {
+                verdictLabel.classList.add("verdict-phishing");
+            } else {
+                verdictLabel.classList.add("verdict-legitimate");
+            }
+            probability.textContent = data.probability !== undefined ? (data.probability * 100).toFixed(1) + "% probability" : "";
+
+            if (data.platform_warning) {
+                platformWarning.classList.add("visible");
+            } else {
+                platformWarning.classList.remove("visible");
+            }
+
+            reasonList.innerHTML = "";
+            if (data.reasons && data.reasons.length > 0) {
+                data.reasons.forEach(reason => {
+                    const li = document.createElement("li");
+                    li.className = "reason-item";
+                    const direction = reason.direction || "neutral";
+                    let directionClass = "direction-neutral";
+                    let directionText = "—";
+                    if (direction === "raises") {
+                        directionClass = "direction-raises";
+                        directionText = "↑";
+                    } else if (direction === "lowers") {
+                        directionClass = "direction-lowers";
+                        directionText = "↓";
+                    }
+                    li.innerHTML = "<span class="reason-direction " + directionClass + "">" + directionText + "</span><span class="reason-text">" + escapeHtml(reason.explanation) + "</span>";
+                    reasonList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.className = "reason-item";
+                li.innerHTML = "<span class="reason-text">No significant features detected</span>";
+                reasonList.appendChild(li);
+            }
+
+            redFlagsList.innerHTML = "";
+            if (data.red_flags && data.red_flags.length > 0) {
+                data.red_flags.forEach(flag => {
+                    const li = document.createElement("li");
+                    li.className = "red-flag-item";
+                    li.innerHTML = "<span class="red-flag-type">" + escapeHtml(flag.type.replace("_", " ")) + ":</span> " + escapeHtml(flag.description);
+                    redFlagsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.className = "red-flag-item";
+                li.style.background = "rgba(22, 163, 74, 0.1)";
+                li.style.borderColor = "rgba(22, 163, 74, 0.3)";
+                li.innerHTML = "<span class="red-flag-type" style="color: var(--success);">None:</span> No red flags detected";
+                redFlagsList.appendChild(li);
+            }
+
+            result.classList.add("visible");
+        }
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = "block";
+        }
+
+        function hideError() {
+            errorEl.style.display = "none";
+        }
+
+        checkBtn.addEventListener("click", () => checkUrl(urlInput.value));
+        urlInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") checkUrl(urlInput.value);
+        });
+        examplePhishing.addEventListener("click", () => {
+            urlInput.value = EXAMPLE_PHISHING;
+            checkUrl(EXAMPLE_PHISHING);
+        });
+        exampleLegitimate.addEventListener("click", () => {
+            urlInput.value = EXAMPLE_LEGITIMATE;
+            checkUrl(EXAMPLE_LEGITIMATE);
+        });
+
+        fetchModelInfo();
+    </script>
+</body>
+</html>

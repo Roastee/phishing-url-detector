@@ -1,0 +1,11 @@
+# Vercel ignore file
+tests/
+scripts/
+docs/
+notebooks/
+data/
+reports/
+.github/
+*.md
+!README.md
+*.pkl

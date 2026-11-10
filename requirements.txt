@@ -1,30 +1,9 @@
-# Core Data & ML Libraries
-numpy==1.26.4
-pandas==2.3.3
-scikit-learn==1.8.0
-xgboost==3.4.1
-
-joblib==1.5.3
-
-# Explainability
-shap==0.45.1
-
-# URL Parsing
-tldextract==5.1.2
-
-# API & Web Frameworks
+# Runtime dependencies only - for Vercel deployment
 fastapi==0.111.0
-uvicorn==0.29.0
 pydantic==2.7.1
 slowapi==0.1.9
-streamlit==1.36.0
-
-# Visualization & Testing
-matplotlib==3.10.9
-seaborn==0.13.2
-pytest==8.2.0
-ruff==0.4.7
-pyarrow>=14,<18
-
--e .
-pyparsing<3.3
+numpy==1.26.4
+scikit-learn==1.8.0
+joblib==1.5.3
+tldextract==5.1.2
+xgboost-cpu==3.4.1
