@@ -4,22 +4,11 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.36.0-FF4B4B.svg?logo=streamlit)](https://streamlit.io)
 [![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](Dockerfile)
 
-> **Production-grade Machine Learning system for real-time phishing URL detection using host-only syntactic and lexical features.** Built with rigorous data-leakage auditing, calibrated decision thresholds, FastAPI REST services, and an interactive Streamlit UI.
+> **Production-grade Machine Learning system for real-time phishing URL detection using host-only syntactic and lexical features.** Built with rigorous data-leakage auditing, calibrated decision thresholds, and FastAPI REST services. The Streamlit UI lives on the `main` branch.
 
 ---
-
-## 🎬 2026 Launch Demo
-
-<p align="center">
-  <a href="brag-output/brag.mp4">
-    <img src="brag-output/demo.gif" alt="PhishDetect 2026 Launch Demo Video" width="850">
-  </a>
-  <br>
-  <em>💡 <b>Click the preview above</b> or <a href="brag-output/brag.mp4">download <code>brag-output/brag.mp4</code></a> to watch the full 1080p 60fps launch video.</em>
-</p>
 
 ---
 
@@ -35,7 +24,6 @@
 - [Repository Structure](#-repository-structure)
 - [Quick Start](#-quick-start)
   - [Local Installation](#local-installation)
-  - [Running the Streamlit UI](#running-the-streamlit-ui)
   - [Running the FastAPI Backend](#running-the-fastapi-backend)
   - [Running with Docker](#running-with-docker)
 - [API Reference](#-api-reference)
@@ -62,7 +50,7 @@ flowchart LR
     D --> E["XGBoost Classifier (Threshold: 0.58)"]
     E --> F["Calibrated Risk Level & Probability"]
     D --> G["SHAP Feature Attribution"]
-    F --> H["FastAPI / Streamlit UI"]
+    F --> H["FastAPI"]
     G --> H
 ```
 
@@ -145,7 +133,7 @@ phishing-url-detector/
 ├── api/
 │   └── main.py              # FastAPI REST service with rate-limiting & validation
 ├── app/
-│   └── app.py               # Streamlit web application with SHAP visualizations
+│   └── app.py               # Streamlit web application (on `main` branch)
 ├── data/                    # Dataset storage & ingestion scripts
 ├── docs/
 │   └── AUDIT.md             # Security and code audit report
@@ -163,7 +151,6 @@ phishing-url-detector/
 │   └── train.py             # Model training and hyperparameter evaluation
 ├── tests/
 │   ├── test_api.py          # FastAPI endpoint integration tests
-│   ├── test_app.py          # Streamlit UI smoke tests
 │   ├── test_consistency.py  # Model inference consistency checks
 │   ├── test_features.py     # Feature extraction unit tests
 │   ├── test_metadata.py     # Metadata validation tests
@@ -195,15 +182,6 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Running the Streamlit UI
-
-Launch the interactive dashboard:
-
-```bash
-streamlit run app/app.py
-```
-Then open your browser at `http://localhost:8501`.
-
 ### Running the FastAPI Backend
 
 Start the REST API with Uvicorn:
@@ -223,9 +201,6 @@ docker build -t phishdetect .
 
 # Run FastAPI service
 docker run -p 8000:8000 phishdetect
-
-# Or run Streamlit UI
-docker run -p 8501:8501 phishdetect streamlit run app/app.py --server.port 8501 --server.address 0.0.0.0
 ```
 
 ---

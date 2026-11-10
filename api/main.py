@@ -88,20 +88,30 @@ async def model_info():
     model_type = metadata.get("deployed_model")
     threshold = metadata.get("threshold")
     feature_count = metadata.get("feature_count")
-    in_dist = metadata.get("in_distribution_metrics")
-    ind_test = metadata.get("independent_test_metrics")
-    
+    in_dist = metadata.get("in_distribution")
+    ind_1to1 = metadata.get("independent_1to1")
+    ind_1to10 = metadata.get("independent_1to10")
+    recall_free = metadata.get("recall_free_hosted")
+    recall_non_free = metadata.get("recall_non_free_hosted")
+    note_3000 = metadata.get("note_1to3000")
+
     if not model_type or threshold is None or feature_count is None:
         raise HTTPException(status_code=500, detail="Incomplete model metadata")
-    if not in_dist or not ind_test:
+    if not in_dist or not ind_1to1 or not ind_1to10:
         raise HTTPException(status_code=500, detail="Missing test metrics in metadata")
-    
+    if not recall_free or not recall_non_free:
+        raise HTTPException(status_code=500, detail="Missing recall metrics in metadata")
+
     return {
         "model_type": model_type,
         "threshold": threshold,
         "feature_count": feature_count,
-        "in_distribution_metrics": in_dist,
-        "independent_test_metrics": ind_test,
+        "in_distribution": in_dist,
+        "independent_1to1": ind_1to1,
+        "independent_1to10": ind_1to10,
+        "recall_free_hosted": recall_free,
+        "recall_non_free_hosted": recall_non_free,
+        "note_1to3000": note_3000,
     }
 
 

@@ -199,6 +199,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     renderModelInfo(data);
+                    populateDetailedSections(data);
                 }
             } catch (e) {
                 console.warn("Could not fetch model info:", e);
@@ -210,13 +211,20 @@
             const items = [
                 { label: "Model", value: data.model_type || "XGBoost" },
                 { label: "Threshold", value: data.threshold ? (data.threshold * 100).toFixed(0) + "%" : "N/A" },
-                { label: "Features", value: data.feature_count || "17" },
-                { label: "Independent Test", value: data.independent_test || "N/A" }
+                { label: "Features", value: data.feature_count || "17" }
             ];
             items.forEach(item => {
                 const div = document.createElement("div");
                 div.className = "model-info-item";
                 div.innerHTML = "<div class="model-info-label">" + escapeHtml(item.label) + "</div><div class="model-info-value">" + escapeHtml(item.value) + "</div>";
+                modelInfo.appendChild(div);
+            });
+            // Add placeholder divs for detailed sections
+            const sections = ['model-in-dist', 'model-ind-1to1', 'model-ind-1to10', 'model-recall-free', 'model-recall-non-free', 'model-note-3000'];
+            sections.forEach(id => {
+                const div = document.createElement("div");
+                div.id = id;
+                div.className = "model-info-item";
                 modelInfo.appendChild(div);
             });
         }
@@ -225,6 +233,39 @@
             const div = document.createElement("div");
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function populateDetailedSections(data) {
+            const inDistDiv = document.getElementById('model-in-dist');
+            if (inDistDiv && data.in_distribution) {
+                const d = data.in_distribution;
+                inDistDiv.innerHTML = '<h4>In-Distribution (XGBoost)</h4><p class="source">Source: reports/metrics.json:in_distribution_test.XGBoost</p><ul><li><strong>Accuracy:</strong> ' + (d.accuracy * 100).toFixed(1) + '% (n=' + d.test_set_size.total + ')</li><li><strong>Precision:</strong> ' + (d.precision * 100).toFixed(1) + '%</li><li><strong>Recall:</strong> ' + (d.recall * 100).toFixed(1) + '%</li><li><strong>F1:</strong> ' + (d.f1 * 100).toFixed(1) + '%</li><li><strong>ROC-AUC:</strong> ' + (d.roc_auc * 100).toFixed(1) + '%</li><li><strong>FPR:</strong> ' + (d.fpr * 100).toFixed(1) + '%</li></ul>';
+            }
+            const ind1to1Div = document.getElementById('model-ind-1to1');
+            if (ind1to1Div && data.independent_1to1) {
+                const c = data.independent_1to1;
+                ind1to1Div.innerHTML = '<h4>Independent 1:1</h4><p class="source">Source: reports/metrics.json:independent_test.ratio_1_to_1</p><ul><li><strong>Accuracy:</strong> ' + (c.accuracy * 100).toFixed(1) + '% (n=' + c.test_set_size.total + ')</li><li><strong>Precision:</strong> ' + (c.precision * 100).toFixed(1) + '% (95% CI: ' + (c.precision_ci[0]*100).toFixed(1) + '% - ' + (c.precision_ci[1]*100).toFixed(1) + '%)</li><li><strong>Recall:</strong> ' + (c.recall * 100).toFixed(1) + '% (95% CI: ' + (c.recall_ci[0]*100).toFixed(1) + '% - ' + (c.recall_ci[1]*100).toFixed(1) + '%)</li><li><strong>F1:</strong> ' + (c.f1 * 100).toFixed(1) + '% (95% CI: ' + (c.f1_ci[0]*100).toFixed(1) + '% - ' + (c.f1_ci[1]*100).toFixed(1) + '%)</li><li><strong>ROC-AUC:</strong> ' + (c.roc_auc * 100).toFixed(1) + '% (95% CI: ' + (c.roc_auc_ci[0]*100).toFixed(1) + '% - ' + (c.roc_auc_ci[1]*100).toFixed(1) + '%)</li><li><strong>FPR:</strong> ' + (c.fpr * 100).toFixed(1) + '% (95% CI: ' + (c.fpr_ci[0]*100).toFixed(1) + '% - ' + (c.fpr_ci[1]*100).toFixed(1) + '%)</li></ul>';
+            }
+            const ind1to10Div = document.getElementById('model-ind-1to10');
+            if (ind1to10Div && data.independent_1to10) {
+                const c = data.independent_1to10;
+                ind1to10Div.innerHTML = '<h4>Independent 1:10</h4><p class="source">Source: reports/metrics.json:independent_test.ratio_1_to_10</p><ul><li><strong>Accuracy:</strong> ' + (c.accuracy * 100).toFixed(1) + '% (n=' + c.test_set_size.total + ')</li><li><strong>Precision:</strong> ' + (c.precision * 100).toFixed(1) + '% (95% CI: ' + (c.precision_ci[0]*100).toFixed(1) + '% - ' + (c.precision_ci[1]*100).toFixed(1) + '%)</li><li><strong>Recall:</strong> ' + (c.recall * 100).toFixed(1) + '% (95% CI: ' + (c.recall_ci[0]*100).toFixed(1) + '% - ' + (c.recall_ci[1]*100).toFixed(1) + '%)</li><li><strong>F1:</strong> ' + (c.f1 * 100).toFixed(1) + '% (95% CI: ' + (c.f1_ci[0]*100).toFixed(1) + '% - ' + (c.f1_ci[1]*100).toFixed(1) + '%)</li><li><strong>ROC-AUC:</strong> ' + (c.roc_auc * 100).toFixed(1) + '% (95% CI: ' + (c.roc_auc_ci[0]*100).toFixed(1) + '% - ' + (c.roc_auc_ci[1]*100).toFixed(1) + '%)</li><li><strong>FPR:</strong> ' + (c.fpr * 100).toFixed(1) + '% (95% CI: ' + (c.fpr_ci[0]*100).toFixed(1) + '% - ' + (c.fpr_ci[1]*100).toFixed(1) + '%)</li></ul>';
+            }
+            const recallFreeDiv = document.getElementById('model-recall-free');
+            if (recallFreeDiv && data.recall_free_hosted) {
+                const r = data.recall_free_hosted;
+                recallFreeDiv.innerHTML = '<h4>Recall Free-Hosted</h4><p class="source">Source: reports/metrics.json:recall_free_hosting_bootstrap_95ci</p><ul><li><strong>Mean:</strong> ' + (r.mean * 100).toFixed(1) + '%</li><li><strong>95% CI:</strong> ' + (r.ci_lower * 100).toFixed(1) + '% - ' + (r.ci_upper * 100).toFixed(1) + '%</li></ul>';
+            }
+            const recallNonFreeDiv = document.getElementById('model-recall-non-free');
+            if (recallNonFreeDiv && data.recall_non_free_hosted) {
+                const r = data.recall_non_free_hosted;
+                recallNonFreeDiv.innerHTML = '<h4>Recall Non-Hosted</h4><p class="source">Source: reports/metrics.json:recall_non_free_hosting_bootstrap_95ci</p><ul><li><strong>Mean:</strong> ' + (r.mean * 100).toFixed(1) + '%</li><li><strong>95% CI:</strong> ' + (r.ci_lower * 100).toFixed(1) + '% - ' + (r.ci_upper * 100).toFixed(1) + '%</li></ul><p class="caption">Recall on non-hosted phishing is about 56%.</p>';
+            }
+            const noteDiv = document.getElementById('model-note-3000');
+            if (noteDiv && data.note_1to3000) {
+                const n = data.note_1to3000;
+                noteDiv.innerHTML = '<h4>1:3000 Ratio Note</h4><p class="source">Source: reports/independent_metrics.json:independent_test</p><ul><li><strong>Accuracy:</strong> ' + (n.accuracy * 100).toFixed(1) + '%</li><li><strong>Recall:</strong> ' + (n.recall * 100).toFixed(1) + '%</li></ul><p class="caption">' + n.note + '</p>';
+            }
         }
 
         async function checkUrl(url) {

@@ -37,22 +37,39 @@ def test_model_info(client):
     assert data["threshold"] is not None
     assert "feature_count" in data
     assert data["feature_count"] is not None
-    assert "in_distribution_metrics" in data
-    assert data["in_distribution_metrics"]
-    assert "independent_test_metrics" in data
-    assert data["independent_test_metrics"]
+    assert "in_distribution" in data
+    assert data["in_distribution"]
+    assert "independent_1to1" in data
+    assert data["independent_1to1"]
+    assert "independent_1to10" in data
+    assert data["independent_1to10"]
+    assert "recall_free_hosted" in data
+    assert data["recall_free_hosted"]
+    assert "recall_non_free_hosted" in data
+    assert data["recall_non_free_hosted"]
+    assert "note_1to3000" in data
+    assert data["note_1to3000"]
     
-    # Check in_distribution_metrics has required keys
-    in_dist = data["in_distribution_metrics"]
+    # Check in_distribution has required keys
+    in_dist = data["in_distribution"]
     assert "accuracy" in in_dist
     assert "test_set_size" in in_dist
     assert "source" in in_dist
     
-    # Check independent_test_metrics has required keys
-    ind_test = data["independent_test_metrics"]
-    assert "accuracy" in ind_test
-    assert "confusion_matrix" in ind_test
-    assert "source" in ind_test
+    # Check independent_1to1 has required keys
+    ind_1to1 = data["independent_1to1"]
+    assert "accuracy" in ind_1to1
+    assert "confusion_matrix" not in ind_1to1  # We use test_set_size instead
+    assert "source" in ind_1to1
+    assert "precision_ci" in ind_1to1
+    assert "recall_ci" in ind_1to1
+    
+    # Check independent_1to10 has required keys
+    ind_1to10 = data["independent_1to10"]
+    assert "accuracy" in ind_1to10
+    assert "source" in ind_1to10
+    assert "precision_ci" in ind_1to10
+    assert "recall_ci" in ind_1to10
 
 
 def test_predict_phishing_url(client):
