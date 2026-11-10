@@ -140,6 +140,12 @@ def generate_global_plot(sample_size: int = 500, output_path: str = None) -> str
         print("matplotlib not installed, skipping plot")
         return None
 
+    try:
+        import shap
+    except ImportError:
+        print("shap not installed, skipping plot")
+        return None
+
     import pandas as pd
     # Load training data
     X_train = pd.read_pickle(os.path.join(PROJECT_ROOT, "reports", "X_train.pkl"))

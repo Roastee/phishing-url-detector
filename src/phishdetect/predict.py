@@ -1,43 +1,41 @@
 """Prediction module for phishing URL detection.
 
 Provides a single source of truth for URL prediction,
-used by both the API and the Streamlit UI.
+using xgboost.Booster directly with manual scaling.
 """
 
 import json
-import os
+from pathlib import Path
 from typing import Dict, List
 
-import joblib
 import numpy as np
+import xgboost as xgb
 
 from .features import FEATURE_NAMES, extract_features, feature_context, compute_red_flags, compute_platform_warning
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-MODEL_PATH = os.path.join(PROJECT_ROOT, "models", "model.joblib")
-METADATA_PATH = os.path.join(PROJECT_ROOT, "models", "metadata.json")
+# Resolve paths relative to this file's location (src/phishdetect/)
+BASE_DIR = Path(__file__).resolve().parents[2]  # repo root
+MODEL_UBJ_PATH = BASE_DIR / "models" / "model.ubj"
+METADATA_PATH = BASE_DIR / "models" / "metadata.json"
 
-_model = None
+_booster = None
 _metadata = None
-_scaler = None
+_scaler_mean = None
+_scaler_scale = None
 
 
-def _load_model():
-    """Lazy-load the model and metadata."""
-    global _model, _metadata, _scaler
-    if _model is None:
-        loaded = joblib.load(MODEL_PATH)
-        # Handle both old format (just model) and new format (dict with model/scaler)
-        if isinstance(loaded, dict):
-            _model = loaded.get('model', loaded)
-            _scaler = loaded.get('scaler', None)
-        else:
-            _model = loaded
-            _scaler = None
-    if _metadata is None and os.path.exists(METADATA_PATH):
-        with open(METADATA_PATH) as f:
+def _load_model() -> tuple:
+    """Lazy-load the booster and metadata."""
+    global _booster, _metadata, _scaler_mean, _scaler_scale
+    if _booster is None:
+        _booster = xgb.Booster()
+        _booster.load_model(str(MODEL_UBJ_PATH))
+    if _metadata is None:
+        with open(METADATA_PATH, "r") as f:
             _metadata = json.load(f)
-    return _model, _metadata
+        _scaler_mean = np.array(_metadata["scaler_mean"], dtype=np.float64)
+        _scaler_scale = np.array(_metadata["scaler_scale"], dtype=np.float64)
+    return _booster, _metadata
 
 
 def predict_url(url: str) -> Dict:
@@ -47,28 +45,17 @@ def predict_url(url: str) -> Dict:
         Dict with keys: url, label, probability, risk_level, reasons,
         platform_warning, red_flags, threshold, model_info, method
     """
-    model, metadata = _load_model()
+    booster, metadata = _load_model()
     features = extract_features(url)
     ctx = feature_context(url)
-    # Create numpy array with proper feature order
+
+    # Create feature array and apply scaling manually: (x - mean) / scale
     feature_array = np.array([[features[name] for name in FEATURE_NAMES]], dtype=np.float64)
+    feature_array = (feature_array - _scaler_mean) / _scaler_scale
 
-    # Apply scaling if scaler is available
-    if _scaler is not None:
-        # Avoid sklearn warning about feature names by temporarily setting them
-        original_feature_names = getattr(_scaler, "feature_names_in_", None)
-        _scaler.feature_names_in_ = np.array(FEATURE_NAMES, dtype=object)
-        feature_array = _scaler.transform(feature_array)
-        # Restore original feature names
-        if original_feature_names is not None:
-            _scaler.feature_names_in_ = original_feature_names
-        else:
-            delattr(_scaler, "feature_names_in_")
-
-    if hasattr(model, "predict_proba"):
-        prob_phishing = float(model.predict_proba(feature_array)[0, 1])
-    else:
-        prob_phishing = 1.0 if model.predict(feature_array)[0] == 1 else 0.0
+    # Predict with booster (output_margin=False gives probability)
+    dmatrix = xgb.DMatrix(feature_array)
+    prob_phishing = float(booster.predict(dmatrix)[0])
 
     # Cap probability at 99.9% to never show 100%
     prob_phishing = min(prob_phishing, 0.999)
@@ -82,8 +69,8 @@ def predict_url(url: str) -> Dict:
     else:
         risk_level = "high"
 
-    # Build reasons from top contributing features (with direction)
-    reasons = _generate_reasons(features, url, threshold)
+    # Build reasons from real XGBoost feature contributions (pred_contribs)
+    reasons = _generate_reasons_from_contributions(booster, feature_array, url, ctx)
 
     # Compute red flags
     red_flags = compute_red_flags(url, ctx)
@@ -111,7 +98,7 @@ def predict_url(url: str) -> Dict:
         "red_flags": red_flags,
         "threshold": threshold,
         "model_info": model_info,
-        "method": "heuristic",  # or "shap" if SHAP is used
+        "method": "xgboost-contributions",
     }
 
 
@@ -120,62 +107,39 @@ def batch_predict(urls: List[str]) -> List[Dict]:
     return [predict_url(url) for url in urls]
 
 
-def _generate_reasons(features: Dict, url: str, threshold: float = 0.5) -> List[Dict]:
-    """Generate human-readable reasons for the prediction.
+def _generate_reasons_from_contributions(booster: xgb.Booster, feature_array: np.ndarray, url: str, ctx: dict) -> List[Dict]:
+    """Generate reasons from XGBoost feature contributions (SHAP-like).
 
-    Only uses features in FEATURE_NAMES. The impact is a simple
-    heuristic based on feature values; for SHAP-based contributions
-    use explain.explain_url.
-
-    Args:
-        features: Dict of feature values
-        url: The URL being analyzed
-        threshold: Decision threshold (used to determine direction)
+    Returns top 5 features by absolute contribution with direction.
     """
-    ctx = feature_context(url)
-    reasons = []
+    dmatrix = xgb.DMatrix(feature_array)
+    # pred_contribs returns (n_samples, n_features + 1) where last column is bias
+    contribs = booster.predict(dmatrix, pred_contribs=True)
+    # contribs shape: (1, 18) - 17 features + 1 bias
+    feature_contribs = contribs[0, :-1]  # exclude bias
+    _ = contribs[0, -1]  # bias (unused)
 
-    # Only consider features that are actually in FEATURE_NAMES
-    for fname in FEATURE_NAMES:
-        val = features.get(fname, 0.0)
-        # Skip zero-value features for brevity
-        if val == 0.0:
+    # Get feature values for explanation
+    features = {name: feature_array[0, i] for i, name in enumerate(FEATURE_NAMES)}
+
+    reasons = []
+    for i, fname in enumerate(FEATURE_NAMES):
+        val = features[fname]
+        contrib = float(feature_contribs[i])
+        # Skip zero contributions for brevity
+        if contrib == 0.0:
             continue
         explanation = _explain_feature_simple(fname, val, ctx)
-        # Simple impact: use the value itself as a rough impact
-        # (This is not SHAP; for real contributions see explain.py)
-        impact = val
-        # Determine direction: raises or lowers risk
-        # Features that are typically phishing indicators raise risk
-        phishing_indicators = {
-            "is_suspicious_tld", "uses_punycode", "has_ip_address",
-            "brand_in_subdomain", "suspicious_keyword_count", "uses_url_shortener",
-            "host_entropy", "on_known_hosting_platform"
-        }
-        # Features that are typically legitimate indicators lower risk
-        legitimate_indicators = set()  # None in our current feature set
-        if fname in phishing_indicators:
-            direction = "raises"
-        elif fname in legitimate_indicators:
-            direction = "lowers"
-        else:
-            # For continuous features, use correlation with phishing
-            # Higher values of these typically indicate phishing
-            if fname in ["host_length", "dot_count", "hyphen_count", "underscore_count",
-                         "digit_count", "digit_ratio", "subdomain_count",
-                         "longest_digit_run", "longest_consonant_run"]:
-                direction = "raises"
-            else:
-                direction = "neutral"
+        direction = "raises" if contrib > 0 else "lowers"
         reasons.append({
             "feature": fname,
             "value": val,
-            "impact": float(impact),
+            "impact": contrib,
             "direction": direction,
             "explanation": explanation,
         })
 
-    # Sort by absolute impact
+    # Sort by absolute contribution
     reasons.sort(key=lambda x: abs(x["impact"]), reverse=True)
     return reasons
 
@@ -228,5 +192,9 @@ def _explain_feature_simple(name: str, value: float, ctx: dict) -> str:
         return "Not a URL shortener"
     elif name == "host_entropy":
         return f"Host entropy is {value:.2f}"
+    elif name == "on_known_hosting_platform":
+        if value > 0:
+            return "Hosted on a known free hosting platform"
+        return "Not on a known free hosting platform"
     else:
         return f"{name} = {value:.2f}"

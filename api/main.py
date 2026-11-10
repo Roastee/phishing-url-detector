@@ -7,8 +7,10 @@ from pydantic import BaseModel, field_validator, ValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import os
+import json
+from pathlib import Path
 
-from phishdetect.predict import predict_url, batch_predict, _load_model
+from phishdetect.predict import predict_url, batch_predict
 
 app = FastAPI(
     title="Phishing URL Detector API",
@@ -71,25 +73,35 @@ async def root():
 
 @app.get("/model-info")
 async def model_info():
-    """Get model metadata and independent test metrics."""
-    model, metadata = _load_model()
+    """Get model metadata and independent test metrics from metadata.json."""
+    # Read metadata.json from models/ directory (repo root / models)
+    base_dir = Path(__file__).resolve().parents[1]  # repo root
+    metadata_path = base_dir / "models" / "metadata.json"
     
-    # Try to load independent test metrics
-    independent_test = None
-    independent_metrics_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "reports", "independent_metrics.json")
-    if os.path.exists(independent_metrics_path):
-        try:
-            import json
-            with open(independent_metrics_path) as f:
-                independent_test = json.load(f)
-        except Exception:
-            pass
+    if not metadata_path.exists():
+        raise HTTPException(status_code=500, detail="Model metadata not found")
+    
+    with open(metadata_path, "r") as f:
+        metadata = json.load(f)
+    
+    # Extract required fields - fail if missing or zero
+    model_type = metadata.get("deployed_model")
+    threshold = metadata.get("threshold")
+    feature_count = metadata.get("feature_count")
+    in_dist = metadata.get("in_distribution_metrics")
+    ind_test = metadata.get("independent_test_metrics")
+    
+    if not model_type or threshold is None or feature_count is None:
+        raise HTTPException(status_code=500, detail="Incomplete model metadata")
+    if not in_dist or not ind_test:
+        raise HTTPException(status_code=500, detail="Missing test metrics in metadata")
     
     return {
-        "model_type": metadata.get("deployed_model", "XGBoost"),
-        "threshold": metadata.get("threshold", 0.5),
-        "feature_count": metadata.get("feature_count", 17),
-        "independent_test": independent_test
+        "model_type": model_type,
+        "threshold": threshold,
+        "feature_count": feature_count,
+        "in_distribution_metrics": in_dist,
+        "independent_test_metrics": ind_test,
     }
 
 

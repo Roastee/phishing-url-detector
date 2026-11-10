@@ -7,7 +7,7 @@ from pathlib import Path
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
-from api.main import app
+from api.main import app  # noqa: E402, F401
 
 # Vercel expects the FastAPI instance to be named 'app'
 # This is already the case in api/main.py

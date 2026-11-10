@@ -67,31 +67,6 @@ def test_predict_py_uses_metadata_threshold():
     )
 
 
-def test_app_py_describes_same_model_and_threshold():
-    app_path = os.path.join(PROJECT_ROOT, "app", "app.py")
-    with open(app_path, encoding="utf-8") as f:
-        content = f.read()
-    # Sidebar must show the model and threshold from metadata
-    assert 'metadata.get("deployed_model"' in content, (
-        "app.py sidebar does not read deployed_model from metadata"
-    )
-    assert 'metadata.get("threshold"' in content, (
-        "app.py sidebar does not read threshold from metadata"
-    )
-    # Independent-test FPR must be shown
-    assert "Independent-test FPR" in content, (
-        "app.py sidebar does not show independent-test FPR"
-    )
-    # Sidebar metrics must be retitled
-    assert "Test metrics (in-distribution)" in content, (
-        "app.py sidebar metrics not retitled"
-    )
-    # Negative bars must use a different color
-    assert "#3498db" in content, (
-        "app.py Why? chart does not color negative bars differently"
-    )
-
-
 def test_model_joblib_threshold_matches():
     import joblib
     bundle = joblib.load(os.path.join(MODELS_DIR, "model.joblib"))

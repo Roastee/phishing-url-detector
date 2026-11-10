@@ -3,7 +3,5 @@ fastapi==0.111.0
 pydantic==2.7.1
 slowapi==0.1.9
 numpy==1.26.4
-scikit-learn==1.8.0
-joblib==1.5.3
 tldextract==5.1.2
 xgboost-cpu==3.4.1
