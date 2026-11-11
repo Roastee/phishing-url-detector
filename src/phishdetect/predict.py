@@ -84,7 +84,7 @@ def predict_url(url: str) -> Dict:
         risk_level = "high"
 
     # Build reasons from real XGBoost feature contributions (pred_contribs)
-    reasons = _generate_reasons_from_contributions(booster, feature_array, url, ctx)
+    reasons = _generate_reasons_from_contributions(booster, feature_array, features, url, ctx)
 
     # Compute red flags
     red_flags = compute_red_flags(url, ctx)
@@ -121,7 +121,7 @@ def batch_predict(urls: List[str]) -> List[Dict]:
     return [predict_url(url) for url in urls]
 
 
-def _generate_reasons_from_contributions(booster: xgb.Booster, feature_array: np.ndarray, url: str, ctx: dict) -> List[Dict]:
+def _generate_reasons_from_contributions(booster: xgb.Booster, feature_array: np.ndarray, raw_features: dict, url: str, ctx: dict) -> List[Dict]:
     """Generate reasons from XGBoost feature contributions (SHAP-like).
 
     Returns top 5 features by absolute contribution with direction.
@@ -133,12 +133,9 @@ def _generate_reasons_from_contributions(booster: xgb.Booster, feature_array: np
     feature_contribs = contribs[0, :-1]  # exclude bias
     _ = contribs[0, -1]  # bias (unused)
 
-    # Get feature values for explanation
-    features = {name: feature_array[0, i] for i, name in enumerate(FEATURE_NAMES)}
-
     reasons = []
     for i, fname in enumerate(FEATURE_NAMES):
-        val = features[fname]
+        val = raw_features.get(fname, 0.0)
         contrib = float(feature_contribs[i])
         # Skip zero contributions for brevity
         if contrib == 0.0:

@@ -1,14 +1,24 @@
 """FastAPI REST API for phishing URL detection."""
 
+import os
+import sys
+from pathlib import Path
+
+# Ensure project root and src/ are in sys.path regardless of execution context
+_repo_root = Path(__file__).resolve().parents[1]
+_src_dir = _repo_root / "src"
+if str(_src_dir) not in sys.path:
+    sys.path.insert(0, str(_src_dir))
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
+
+import json
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator, ValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-import os
-import json
-from pathlib import Path
 
 from phishdetect.predict import predict_url, batch_predict
 
