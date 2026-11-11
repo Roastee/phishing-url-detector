@@ -216,7 +216,7 @@
             items.forEach(item => {
                 const div = document.createElement("div");
                 div.className = "model-info-item";
-                div.innerHTML = "<div class="model-info-label">" + escapeHtml(item.label) + "</div><div class="model-info-value">" + escapeHtml(item.value) + "</div>";
+                div.innerHTML = `<div class="model-info-label">${escapeHtml(item.label)}</div><div class="model-info-value">${escapeHtml(item.value)}</div>`;
                 modelInfo.appendChild(div);
             });
             // Add placeholder divs for detailed sections
@@ -339,13 +339,13 @@
                         directionClass = "direction-lowers";
                         directionText = "↓";
                     }
-                    li.innerHTML = "<span class="reason-direction " + directionClass + "">" + directionText + "</span><span class="reason-text">" + escapeHtml(reason.explanation) + "</span>";
+                    li.innerHTML = `<span class="reason-direction ${directionClass}">${directionText}</span><span class="reason-text">${escapeHtml(reason.explanation)}</span>`;
                     reasonList.appendChild(li);
                 });
             } else {
                 const li = document.createElement("li");
                 li.className = "reason-item";
-                li.innerHTML = "<span class="reason-text">No significant features detected</span>";
+                li.innerHTML = `<span class="reason-text">No significant features detected</span>`;
                 reasonList.appendChild(li);
             }
 
@@ -354,7 +354,7 @@
                 data.red_flags.forEach(flag => {
                     const li = document.createElement("li");
                     li.className = "red-flag-item";
-                    li.innerHTML = "<span class="red-flag-type">" + escapeHtml(flag.type.replace("_", " ")) + ":</span> " + escapeHtml(flag.description);
+                    li.innerHTML = `<span class="red-flag-type">${escapeHtml(flag.type.replace("_", " "))}:</span> ${escapeHtml(flag.description)}`;
                     redFlagsList.appendChild(li);
                 });
             } else {
@@ -362,7 +362,7 @@
                 li.className = "red-flag-item";
                 li.style.background = "rgba(22, 163, 74, 0.1)";
                 li.style.borderColor = "rgba(22, 163, 74, 0.3)";
-                li.innerHTML = "<span class="red-flag-type" style="color: var(--success);">None:</span> No red flags detected";
+                li.innerHTML = `<span class="red-flag-type" style="color: var(--success);">None:</span> No red flags detected`;
                 redFlagsList.appendChild(li);
             }
 

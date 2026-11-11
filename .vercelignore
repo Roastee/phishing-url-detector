@@ -6,6 +6,7 @@ notebooks/
 data/
 reports/
 .github/
+brag-output/
 *.md
 !README.md
 *.pkl

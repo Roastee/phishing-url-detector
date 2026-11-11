@@ -66,6 +66,15 @@ async def health_check():
 async def root():
     """Serve the self-contained HTML page."""
     html_path = os.path.join(os.path.dirname(__file__), "html_page.html")
+    if not os.path.exists(html_path):
+        candidates = [
+            Path.cwd() / "api" / "html_page.html",
+            Path(__file__).resolve().parent / "html_page.html",
+        ]
+        for c in candidates:
+            if c.exists():
+                html_path = str(c)
+                break
     with open(html_path, "r", encoding="utf-8") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content)
@@ -74,11 +83,19 @@ async def root():
 @app.get("/model-info")
 async def model_info():
     """Get model metadata and independent test metrics from metadata.json."""
-    # Read metadata.json from models/ directory (repo root / models)
-    base_dir = Path(__file__).resolve().parents[1]  # repo root
-    metadata_path = base_dir / "models" / "metadata.json"
-    
-    if not metadata_path.exists():
+    # Read metadata.json from models/ directory with fallback search
+    candidates = [
+        Path(__file__).resolve().parents[1] / "models" / "metadata.json",
+        Path.cwd() / "models" / "metadata.json",
+        Path(__file__).resolve().parents[2] / "models" / "metadata.json",
+    ]
+    metadata_path = None
+    for c in candidates:
+        if c.exists():
+            metadata_path = c
+            break
+
+    if not metadata_path or not metadata_path.exists():
         raise HTTPException(status_code=500, detail="Model metadata not found")
     
     with open(metadata_path, "r") as f:

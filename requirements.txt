@@ -5,3 +5,5 @@ slowapi==0.1.9
 numpy==1.26.4
 tldextract==5.1.2
 xgboost-cpu==3.4.1
+uvicorn==0.29.0
+

@@ -15,8 +15,20 @@ from .features import FEATURE_NAMES, extract_features, feature_context, compute_
 
 # Resolve paths relative to this file's location (src/phishdetect/)
 BASE_DIR = Path(__file__).resolve().parents[2]  # repo root
-MODEL_UBJ_PATH = BASE_DIR / "models" / "model.ubj"
-METADATA_PATH = BASE_DIR / "models" / "metadata.json"
+
+def _resolve_model_path(filename: str) -> Path:
+    candidates = [
+        BASE_DIR / "models" / filename,
+        Path.cwd() / "models" / filename,
+        Path(__file__).resolve().parents[1] / "models" / filename,
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return candidates[0]
+
+MODEL_UBJ_PATH = _resolve_model_path("model.ubj")
+METADATA_PATH = _resolve_model_path("metadata.json")
 
 _booster = None
 _metadata = None
@@ -28,10 +40,12 @@ def _load_model() -> tuple:
     """Lazy-load the booster and metadata."""
     global _booster, _metadata, _scaler_mean, _scaler_scale
     if _booster is None:
+        model_path = _resolve_model_path("model.ubj")
         _booster = xgb.Booster()
-        _booster.load_model(str(MODEL_UBJ_PATH))
+        _booster.load_model(str(model_path))
     if _metadata is None:
-        with open(METADATA_PATH, "r") as f:
+        meta_path = _resolve_model_path("metadata.json")
+        with open(meta_path, "r") as f:
             _metadata = json.load(f)
         _scaler_mean = np.array(_metadata["scaler_mean"], dtype=np.float64)
         _scaler_scale = np.array(_metadata["scaler_scale"], dtype=np.float64)
